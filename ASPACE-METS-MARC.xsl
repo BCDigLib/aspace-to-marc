@@ -490,10 +490,14 @@
 	</xsl:template>
 	<xsl:template name="controlRecordInfo">
 		<!--<xsl:template match="mods:recordInfo">-->
-
+		<xsl:param name="id">
+			<xsl:value-of select="substring-after(ancestor::mets:dmdSec/@ID, 'dm')"/>
+		</xsl:param>
 		<marc:controlfield tag="001">
+
+
 			<xsl:text>dao</xsl:text>
-			<xsl:value-of select="format-number(ancestor::mets:dmdSec/@ID, '0000000000')"/>
+			<xsl:value-of select="format-number(number($id), '0000000000')"/>
 		</marc:controlfield>
 		<marc:controlfield tag="003">ArchivesSpace</marc:controlfield>
 
@@ -1079,7 +1083,7 @@
 				<marc:subfield code="g">
 					<xsl:choose>
 						<xsl:when test="mods:subject">
-						<xsl:value-of select="translate(mods:subject/mods:topic,'.','')"/>
+							<xsl:value-of select="translate(mods:subject/mods:topic,'.','')"/>
 						</xsl:when>
 						<!--temp Anansi data fix-->
 						<xsl:otherwise>
@@ -1091,7 +1095,7 @@
 				<marc:subfield code="2">
 					<xsl:choose>
 						<xsl:when test="mods:subject">
-					<xsl:value-of select="mods:subject/@authority"/>
+							<xsl:value-of select="mods:subject/@authority"/>
 						</xsl:when>
 						<!--temp Anansi data fix-->
 						<xsl:otherwise>
