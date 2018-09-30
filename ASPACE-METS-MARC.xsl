@@ -97,7 +97,7 @@
 	<xsl:template match="mods:mods">
 		<xsl:variable name="unitid">
 			<xsl:value-of
-				select="substring-before(/mets:mets/mets:fileSec/mets:fileGrp[1]/mets:file[1]/mets:FLocat/@xlink:href, '_0000')"
+				select="substring-before(/mets:mets/mets:fileSec/mets:fileGrp[1]/mets:file[1]/mets:FLocat/@xlink:href, '_000')"
 			/>
 		</xsl:variable>
 		<marc:record xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
@@ -153,7 +153,7 @@
 				<!-- 06 -->
 				<xsl:variable name="unitid">
 					<xsl:value-of
-						select="substring-before(ancestor::mets:mets/mets:fileSec/mets:fileGrp[1]/mets:file[1]/mets:FLocat/@xlink:href, '_0000')"
+						select="substring-before(ancestor::mets:mets/mets:fileSec/mets:fileGrp[1]/mets:file[1]/mets:FLocat/@xlink:href, '_000')"
 					/>
 				</xsl:variable>
 				<xsl:choose>
@@ -481,7 +481,7 @@
 			<xsl:when test="text()='sound recording-nonmusical'">i</xsl:when>
 			<xsl:when test="text()='sound recording'">j</xsl:when>
 			<xsl:when test="text()='sound recording-musical'">j</xsl:when>
-			<xsl:when test="text()='still image'">k</xsl:when>
+			<xsl:when test="text()='still_image'">k</xsl:when>
 			<xsl:when test="text()='moving image'">g</xsl:when>
 			<xsl:when test="text()='three dimensional object'">r</xsl:when>
 			<xsl:when test="text()='software, multimedia'">m</xsl:when>
@@ -490,14 +490,10 @@
 	</xsl:template>
 	<xsl:template name="controlRecordInfo">
 		<!--<xsl:template match="mods:recordInfo">-->
-		<xsl:param name="id">
-			<xsl:value-of select="substring-after(ancestor::mets:dmdSec/@ID, 'dm')"/>
-		</xsl:param>
+
 		<marc:controlfield tag="001">
-
-
 			<xsl:text>dao</xsl:text>
-			<xsl:value-of select="format-number(number($id), '0000000000')"/>
+			<xsl:value-of select="format-number(ancestor::mets:dmdSec/@ID, '0000000000')"/>
 		</marc:controlfield>
 		<marc:controlfield tag="003">ArchivesSpace</marc:controlfield>
 
@@ -506,7 +502,7 @@
 			<xsl:when test="mods:typeOfResource='text'">
 				<marc:controlfield tag="006">m####|o##d########</marc:controlfield>
 			</xsl:when>
-			<xsl:when test="mods:typeOfResource='still image'">
+			<xsl:when test="mods:typeOfResource='still_image'">
 				<marc:controlfield tag="006">m####|o##c########</marc:controlfield>
 			</xsl:when>
 			<xsl:when test="mods:typeOfResource='mixed material'">
@@ -544,8 +540,8 @@
 			<!-- v3 musical/non -->
 			<xsl:when test="text()='sound recording-nonmusical'">MU</xsl:when>
 			<xsl:when test="text()='sound recording-musical'">MU</xsl:when>
-			<xsl:when test="text()='still image'">VM</xsl:when>
-			<xsl:when test="text()='still image' and @manuscript='yes'">VM</xsl:when>
+			<xsl:when test="text()='still_image'">VM</xsl:when>
+			<xsl:when test="text()='still_image' and @manuscript='yes'">VM</xsl:when>
 			<xsl:when test="text()='moving image'">VM</xsl:when>
 			<xsl:when test="text()='three dimensional object'">VM</xsl:when>
 			<xsl:when test="text()='software, multimedia'">CF</xsl:when>
@@ -632,13 +628,149 @@
 				<marc:subfield code="a">
 					<xsl:text>2345.2/</xsl:text>
 					<xsl:value-of
-						select="substring-before(ancestor::mets:mets/mets:fileSec/mets:fileGrp[1]/mets:file[1]/mets:FLocat/@xlink:href, '_0000')"
+						select="substring-before(ancestor::mets:mets/mets:fileSec/mets:fileGrp[1]/mets:file[1]/mets:FLocat/@xlink:href, '_000')"
 					/>
 				</marc:subfield>
 				<marc:subfield code="2">hdl</marc:subfield>
 			</xsl:with-param>
 		</xsl:call-template>
 	</xsl:template>
+	
+	<!--personal name-->
+	<xsl:template match="mods:name[@type='personal']">
+		
+		<xsl:choose>
+			<!--	<xsl:when test="self::node()[1] and ancestor::mods:mods/descendant::mods:roleTerm[text()='pht' or text()='cre' or text()='aut' or text()='crp']/@type='code'">-->
+			<xsl:when
+				test="self::node()[1] and self::node()/descendant::mods:roleTerm[text()='pht' or text()='cre' or text()='aut' or text()='crp']/@type='code'">
+				<xsl:call-template name="datafield">
+					<xsl:with-param name="tag">100</xsl:with-param>
+					<xsl:with-param name="ind1">1</xsl:with-param>
+					<xsl:with-param name="subfields">
+						<marc:subfield code="a">
+							<xsl:value-of select="mods:namePart[@type='family']"/>
+							<xsl:text>, </xsl:text>
+							<xsl:value-of select="mods:namePart[@type='given'][1]"/>
+							
+							<xsl:choose>
+								<xsl:when
+									test="mods:namePart[@type='date'] or mods:namePart[@type='termsOfAddress']">
+									<xsl:text>, </xsl:text>
+								</xsl:when>
+								<xsl:when test="mods:namePart[@type='given'][2]">
+									<marc:subfield code="q">
+										<xsl:text>(</xsl:text>
+										<xsl:value-of select="mods:namePart[@type='given'][2]"/>
+										<xsl:text>)</xsl:text>
+									</marc:subfield>
+								</xsl:when>
+								<xsl:when test="mods:role">,</xsl:when>
+								<xsl:otherwise>.</xsl:otherwise>
+								
+							</xsl:choose>
+							
+						</marc:subfield>
+						
+						
+						
+						
+						
+						<!-- v3 termsOfAddress -->
+						<xsl:for-each select="mods:namePart[@type='termsOfAddress']">
+							<marc:subfield code="c">
+								<xsl:value-of select="."/>
+								<xsl:if
+									test="mods:namePart[@type='date'] or following-sibling::mods:role">
+									<xsl:text>,</xsl:text>
+								</xsl:if>
+							</marc:subfield>
+						</xsl:for-each>
+						<xsl:for-each select="mods:namePart[@type='date']">
+							<marc:subfield code="d">
+								
+								<xsl:value-of select="."/>
+								<xsl:text>, </xsl:text>
+							</marc:subfield>
+						</xsl:for-each>
+						<!-- v3 role -->
+						<xsl:for-each select="mods:role/mods:roleTerm[@type='text']">
+							<marc:subfield code="e">
+								<xsl:value-of select="lower-case(.)"/>
+								<xsl:text>.</xsl:text>
+							</marc:subfield>
+						</xsl:for-each>
+						<xsl:for-each select="mods:role/mods:roleTerm[@type='code']">
+							<marc:subfield code="4">
+								<xsl:value-of select="."/>
+							</marc:subfield>
+						</xsl:for-each>
+						<xsl:for-each select="mods:affiliation">
+							<marc:subfield code="u">
+								<xsl:value-of select="."/>
+							</marc:subfield>
+						</xsl:for-each>
+						<xsl:for-each select="mods:description">
+							<marc:subfield code="g">
+								<xsl:value-of select="."/>
+							</marc:subfield>
+						</xsl:for-each>
+					</xsl:with-param>
+				</xsl:call-template>
+			</xsl:when>
+			<xsl:otherwise>
+				<xsl:call-template name="datafield">
+					<xsl:with-param name="tag">700</xsl:with-param>
+					<xsl:with-param name="ind1">1</xsl:with-param>
+					<xsl:with-param name="subfields">
+						<marc:subfield code="a">
+							<xsl:value-of select="mods:namePart[@type='family']"/>
+							<xsl:if
+								test="mods:namePart[@type='family']and mods:namePart[@type='given']"
+								>, </xsl:if>
+							<xsl:value-of select="mods:namePart[@type='given']"/>
+							<xsl:choose>
+								<xsl:when
+									test="not(mods:namePart[@type='termsofAddress'] or mods:namePart[@type='date'] or mods:role)"
+									>.</xsl:when>
+								<xsl:otherwise>,</xsl:otherwise>
+							</xsl:choose>
+						</marc:subfield>
+						
+						<xsl:for-each select="mods:namePart[@type='termsOfAddress']">
+							<marc:subfield code="c">
+								<xsl:value-of select="."/>
+								<xsl:text>,</xsl:text>
+							</marc:subfield>
+						</xsl:for-each>
+						<xsl:for-each select="mods:namePart[@type='date']">
+							<marc:subfield code="d">
+								<xsl:value-of select="."/>
+								<xsl:text>,</xsl:text>
+							</marc:subfield>
+						</xsl:for-each>
+						
+						<xsl:for-each select="mods:role/mods:roleTerm[@type='text']">
+							<marc:subfield code="e">
+								<xsl:value-of select="lower-case(.)"/>
+								<xsl:text>.</xsl:text>
+							</marc:subfield>
+						</xsl:for-each>
+						<xsl:for-each select="mods:role/mods:roleTerm[@type='code']">
+							<marc:subfield code="4">
+								<xsl:value-of select="."/>
+							</marc:subfield>
+						</xsl:for-each>
+						<xsl:for-each select="mods:affiliation">
+							<marc:subfield code="u">
+								<xsl:value-of select="."/>
+							</marc:subfield>
+						</xsl:for-each>
+					</xsl:with-param>
+				</xsl:call-template>
+			</xsl:otherwise>
+		</xsl:choose>
+	</xsl:template>
+	
 	<!-- Title Info elements -->
 	<xsl:template match="mods:titleInfo[not(ancestor-or-self::mods:subject)][not(@type)][1]">
 
@@ -646,7 +778,7 @@
 			<!-- determine if title main entry-->
 			<xsl:choose>
 				<xsl:when
-					test="ancestor::mods:mods/descendant::mods:roleTerm[text()='pht' or text()='cre' or text()='aut' or text()='crp']/@type='code'">
+					test="ancestor::mods:mods/descendant::mods:roleTerm[text()='creator']/@type='text'">
 					<xsl:text>1</xsl:text>
 				</xsl:when>
 				<xsl:otherwise>
@@ -693,7 +825,7 @@
 	<xsl:template name="marc264">
 		<xsl:variable name="unitid">
 			<xsl:value-of
-				select="substring-before(ancestor::mets:mets/mets:fileSec/mets:fileGrp[1]/mets:file[1]/mets:FLocat/@xlink:href, '_0000')"
+				select="substring-before(ancestor::mets:mets/mets:fileSec/mets:fileGrp[1]/mets:file[1]/mets:FLocat/@xlink:href, '_000')"
 			/>
 		</xsl:variable>
 		<xsl:call-template name="datafield">
@@ -736,13 +868,11 @@
 		<xsl:call-template name="marc300"/>
 		<xsl:choose>
 
-			<xsl:when test="text()='still image'">
+			<xsl:when test="text()='still_image'">
 				<xsl:call-template name="datafield">
 					<xsl:with-param name="tag">336</xsl:with-param>
 					<xsl:with-param name="subfields">
-						<marc:subfield code="a">
-							<xsl:value-of select="."/>
-						</marc:subfield>
+						<marc:subfield code="a">still image</marc:subfield>
 						<marc:subfield code="b">
 							<xsl:value-of select="substring(. , 1, 3)"/>
 						</marc:subfield>
@@ -950,7 +1080,7 @@
 				<xsl:apply-templates select="$ead//ead:archdesc/ead:dsc/ead:c">
 					<xsl:with-param name="unitid">
 						<xsl:value-of
-							select="substring-before(ancestor::mets:mets/mets:fileSec/mets:fileGrp[1]/mets:file[1]/mets:FLocat/@xlink:href, '_0000')"
+							select="substring-before(ancestor::mets:mets/mets:fileSec/mets:fileGrp[1]/mets:file[1]/mets:FLocat/@xlink:href, '_000')"
 						/>
 					</xsl:with-param>
 				</xsl:apply-templates>
@@ -1002,7 +1132,7 @@
 				<marc:subfield code="u">
 					<xsl:text>https://library.bc.edu/iiif/view/</xsl:text>
 					<xsl:value-of
-						select="substring-before(ancestor::mets:mets/mets:fileSec/mets:fileGrp[1]/mets:file[1]/mets:FLocat/@xlink:href, '_0000')"/>
+						select="substring-before(ancestor::mets:mets/mets:fileSec/mets:fileGrp[1]/mets:file[1]/mets:FLocat/@xlink:href, '_000')"/>
 
 				</marc:subfield>
 
@@ -1083,7 +1213,7 @@
 				<marc:subfield code="g">
 					<xsl:choose>
 						<xsl:when test="mods:subject">
-							<xsl:value-of select="translate(mods:subject/mods:topic,'.','')"/>
+						<xsl:value-of select="translate(mods:subject/mods:topic,'.','')"/>
 						</xsl:when>
 						<!--temp Anansi data fix-->
 						<xsl:otherwise>
@@ -1095,7 +1225,7 @@
 				<marc:subfield code="2">
 					<xsl:choose>
 						<xsl:when test="mods:subject">
-							<xsl:value-of select="mods:subject/@authority"/>
+					<xsl:value-of select="mods:subject/@authority"/>
 						</xsl:when>
 						<!--temp Anansi data fix-->
 						<xsl:otherwise>
