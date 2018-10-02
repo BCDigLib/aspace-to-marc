@@ -43,6 +43,7 @@
 
 
 	<xsl:variable name="ead" select="document('ead.xml')"/>
+	<xsl:variable name="relator" select="document('marc-relator-terms.xml')"/>
 
 	<xsl:output method="xml" indent="yes" encoding="UTF-8" omit-xml-declaration="yes"/>
 
@@ -642,7 +643,7 @@
 		<xsl:choose>
 			<!--	<xsl:when test="self::node()[1] and ancestor::mods:mods/descendant::mods:roleTerm[text()='pht' or text()='cre' or text()='aut' or text()='crp']/@type='code'">-->
 			<xsl:when
-				test="self::node()[1] and self::node()/descendant::mods:roleTerm[text()='pht' or text()='cre' or text()='aut' or text()='crp']/@type='code'">
+				test="self::node()[1] and self::node()/descendant::mods:roleTerm[text()='creator']/@type='text'">
 				<xsl:call-template name="datafield">
 					<xsl:with-param name="tag">100</xsl:with-param>
 					<xsl:with-param name="ind1">1</xsl:with-param>
@@ -654,7 +655,7 @@
 							
 							<xsl:choose>
 								<xsl:when
-									test="mods:namePart[@type='date'] or mods:namePart[@type='termsOfAddress']">
+									test="mods:namePart[@type='date'] or (mods:namePart[@type='termsOfAddress'] != '')">
 									<xsl:text>, </xsl:text>
 								</xsl:when>
 								<xsl:when test="mods:namePart[@type='given'][2]">
@@ -677,33 +678,51 @@
 						
 						<!-- v3 termsOfAddress -->
 						<xsl:for-each select="mods:namePart[@type='termsOfAddress']">
+							<xsl:if test="mods:namePart[@type='termsOfAddress'] != ''">
 							<marc:subfield code="c">
-								<xsl:value-of select="."/>
-								<xsl:if
+								<xsl:value-of select="string-length(mods:namePart[@type='termsOfAddress'])"/>
+								<!--<xsl:if
 									test="mods:namePart[@type='date'] or following-sibling::mods:role">
 									<xsl:text>,</xsl:text>
-								</xsl:if>
+								</xsl:if>-->
 							</marc:subfield>
+							</xsl:if>
 						</xsl:for-each>
-						<xsl:for-each select="mods:namePart[@type='date']">
+						<xsl:variable name="unitid">
+							<xsl:value-of
+								select="substring-before(/mets:mets/mets:fileSec/mets:fileGrp[1]/mets:file[1]/mets:FLocat/@xlink:href, '_000')"
+							/>
+						</xsl:variable>
+						
+						<xsl:if test="$ead//ead:did[child::ead:unitid=$unitid]/ead:origination[@label='creator']/ead:persname">
+							<xsl:variable name="date">
+								<xsl:value-of select="substring-after(substring-after($ead//ead:did[child::ead:unitid=$unitid]/ead:origination[@label='creator']/ead:persname, ','),',')"/>
+							</xsl:variable>
+							
+							<xsl:if test="string-length($date) &gt; 3">
+							
 							<marc:subfield code="d">
 								
-								<xsl:value-of select="."/>
-								<xsl:text>, </xsl:text>
+								<xsl:value-of select="normalize-space($date)"></xsl:value-of>
+								<xsl:text>,</xsl:text>
 							</marc:subfield>
-						</xsl:for-each>
+							</xsl:if>
+					</xsl:if>
 						<!-- v3 role -->
-						<xsl:for-each select="mods:role/mods:roleTerm[@type='text']">
+							<xsl:variable name="code">
+								<xsl:value-of select="$ead//ead:did[child::ead:unitid=$unitid]/ead:origination[@label='creator']/ead:persname/@role"/>
+							</xsl:variable>
+
 							<marc:subfield code="e">
-								<xsl:value-of select="lower-case(.)"/>
+								<xsl:value-of select="$relator//marc-relator-terms/relator[child::code=$code]/term"></xsl:value-of>
 								<xsl:text>.</xsl:text>
 							</marc:subfield>
-						</xsl:for-each>
-						<xsl:for-each select="mods:role/mods:roleTerm[@type='code']">
+						
+				
 							<marc:subfield code="4">
-								<xsl:value-of select="."/>
+								<xsl:value-of select="$ead//ead:did[child::ead:unitid=$unitid]/ead:origination[@label='creator']/ead:persname/@role"/>
 							</marc:subfield>
-						</xsl:for-each>
+						
 						<xsl:for-each select="mods:affiliation">
 							<marc:subfield code="u">
 								<xsl:value-of select="."/>
