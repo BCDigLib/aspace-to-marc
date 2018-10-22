@@ -313,23 +313,9 @@
 						</xsl:choose>
 					</xsl:when>
 					<xsl:when test="$typeOf008='MP' or $typeOf008='VM'">
-						<xsl:choose>
-							<xsl:when test="mods:physicalDescription/mods:form='braille'"
-								>f</xsl:when>
-							<xsl:when test="mods:physicalDescription/mods:form='electronic'"
-								>o</xsl:when>
-							<!-- o is more specific than s-->
-							<xsl:when test="mods:physicalDescription/mods:form='microfiche'"
-								>b</xsl:when>
-							<xsl:when test="mods:physicalDescription/mods:form='microfilm'"
-								>a</xsl:when>
-							<xsl:when test="mods:physicalDescription/mods:form='print'">
-								<xsl:text> </xsl:text>
-							</xsl:when>
-							<xsl:otherwise>|</xsl:otherwise>
-						</xsl:choose>
+
+					<xsl:text>0</xsl:text>
 					</xsl:when>
-					<xsl:otherwise>|</xsl:otherwise>
 				</xsl:choose>
 				<!-- 30-31 -->
 				<xsl:choose>
@@ -351,32 +337,7 @@
 				<xsl:choose>
 					<xsl:when test="$typeOf008='VM'">
 						<xsl:choose>
-							<xsl:when test="mods:genre[@authority='marc']='art originial'"
-								>a</xsl:when>
-							<xsl:when test="mods:genre[@authority='marc']='art reproduction'"
-								>c</xsl:when>
-							<xsl:when test="mods:genre[@authority='marc']='chart'">n</xsl:when>
-							<xsl:when test="mods:genre[@authority='marc']='diorama'">d</xsl:when>
-							<xsl:when test="mods:genre[@authority='marc']='filmstrip'">f</xsl:when>
-							<xsl:when test="mods:genre[@authority='marc']='flash card'">o</xsl:when>
-							<xsl:when test="mods:genre[@authority='marc']='graphic'">k</xsl:when>
-							<xsl:when test="mods:genre[@authority='marc']='kit'">b</xsl:when>
-							<xsl:when test="mods:genre[@authority='marc']='technical drawing'"
-								>l</xsl:when>
-							<xsl:when test="mods:genre[@authority='marc']='slide'">s</xsl:when>
-							<xsl:when test="mods:genre[@authority='marc']='realia'">r</xsl:when>
-							<xsl:when test="mods:genre[@authority='marc']='picture'">i</xsl:when>
-							<xsl:when test="mods:genre[@authority='marc']='motion picture'"
-								>m</xsl:when>
-							<xsl:when test="mods:genre[@authority='marc']='model'">q</xsl:when>
-							<xsl:when test="mods:genre[@authority='marc']='microscope slide'"
-								>p</xsl:when>
-							<xsl:when test="mods:genre[@authority='marc']='toy'">w</xsl:when>
-							<xsl:when test="mods:genre[@authority='marc']='transparency'"
-								>t</xsl:when>
-							<xsl:when test="mods:genre[@authority='marc']='videorecording'"
-								>v</xsl:when>
-							<xsl:when test="mods:genre[@authority='gmgpc']='Prints'">c</xsl:when>
+							<xsl:when test="mods:subject[@authority='gmgpc']/mods:topic='Prints'">c</xsl:when>
 							<xsl:otherwise>i</xsl:otherwise>
 						</xsl:choose>
 					</xsl:when>
