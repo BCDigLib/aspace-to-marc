@@ -314,7 +314,7 @@
 					</xsl:when>
 					<xsl:when test="$typeOf008='MP' or $typeOf008='VM'">
 
-					<xsl:text>0</xsl:text>
+						<xsl:text>0</xsl:text>
 					</xsl:when>
 				</xsl:choose>
 				<!-- 30-31 -->
@@ -337,7 +337,8 @@
 				<xsl:choose>
 					<xsl:when test="$typeOf008='VM'">
 						<xsl:choose>
-							<xsl:when test="mods:subject[@authority='gmgpc']/mods:topic='Prints'">c</xsl:when>
+							<xsl:when test="mods:subject[@authority='gmgpc']/mods:topic='Prints'"
+								>c</xsl:when>
 							<xsl:otherwise>i</xsl:otherwise>
 						</xsl:choose>
 					</xsl:when>
@@ -409,7 +410,7 @@
 			<!--temp Anansi data fix-->
 			<xsl:if test="not(mods:subject)">
 				<xsl:call-template name="datafield">
-					<xsl:with-param name="tag">650</xsl:with-param>
+					<xsl:with-param name="tag">655</xsl:with-param>
 					<xsl:with-param name="ind1"> </xsl:with-param>
 					<xsl:with-param name="ind2">7</xsl:with-param>
 					<xsl:with-param name="subfields">
@@ -431,8 +432,9 @@
 	</xsl:template>
 
 	<xsl:template match="mods:typeOfResource" mode="leader">
+
 		<xsl:choose>
-			<xsl:when test="text()='text' and @manuscript='yes'">t</xsl:when>
+
 			<xsl:when test="text()='text'">t</xsl:when>
 			<!-- assumption all ASpace stuff is manuscript; made because ASpace METS export has no manuscript attribute-->
 			<xsl:when test="text()='cartographic' and @manuscript='yes'">f</xsl:when>
@@ -598,9 +600,11 @@
 		</xsl:call-template>
 	</xsl:template>
 	
+	<xsl:template match="mods:dateCreated"/>
+
 	<!--personal name-->
 	<xsl:template match="mods:name[@type='personal']">
-		
+
 		<xsl:choose>
 			<!--	<xsl:when test="self::node()[1] and ancestor::mods:mods/descendant::mods:roleTerm[text()='pht' or text()='cre' or text()='aut' or text()='crp']/@type='code'">-->
 			<xsl:when
@@ -613,7 +617,7 @@
 							<xsl:value-of select="mods:namePart[@type='family']"/>
 							<xsl:text>, </xsl:text>
 							<xsl:value-of select="mods:namePart[@type='given'][1]"/>
-							
+
 							<xsl:choose>
 								<xsl:when
 									test="mods:namePart[@type='date'] or (mods:namePart[@type='termsOfAddress'] != '')">
@@ -628,25 +632,26 @@
 								</xsl:when>
 								<xsl:when test="mods:role">,</xsl:when>
 								<xsl:otherwise>.</xsl:otherwise>
-								
+
 							</xsl:choose>
-							
+
 						</marc:subfield>
-						
-						
-						
-						
-						
+
+
+
+
+
 						<!-- v3 termsOfAddress -->
 						<xsl:for-each select="mods:namePart[@type='termsOfAddress']">
 							<xsl:if test="mods:namePart[@type='termsOfAddress'] != ''">
-							<marc:subfield code="c">
-								<xsl:value-of select="string-length(mods:namePart[@type='termsOfAddress'])"/>
-								<!--<xsl:if
+								<marc:subfield code="c">
+									<xsl:value-of
+										select="string-length(mods:namePart[@type='termsOfAddress'])"/>
+									<!--<xsl:if
 									test="mods:namePart[@type='date'] or following-sibling::mods:role">
 									<xsl:text>,</xsl:text>
 								</xsl:if>-->
-							</marc:subfield>
+								</marc:subfield>
 							</xsl:if>
 						</xsl:for-each>
 						<xsl:variable name="unitid">
@@ -654,36 +659,44 @@
 								select="substring-before(/mets:mets/mets:fileSec/mets:fileGrp[1]/mets:file[1]/mets:FLocat/@xlink:href, '_000')"
 							/>
 						</xsl:variable>
-						
-						<xsl:if test="$ead//ead:did[child::ead:unitid=$unitid]/ead:origination[@label='creator']/ead:persname">
+
+						<xsl:if
+							test="$ead//ead:did[child::ead:unitid=$unitid]/ead:origination[@label='creator']/ead:persname">
 							<xsl:variable name="date">
-								<xsl:value-of select="substring-after(substring-after($ead//ead:did[child::ead:unitid=$unitid]/ead:origination[@label='creator']/ead:persname, ','),',')"/>
-							</xsl:variable>
-							
-							<xsl:if test="string-length($date) &gt; 3">
-							
-							<marc:subfield code="d">
-								
-								<xsl:value-of select="normalize-space($date)"></xsl:value-of>
-								<xsl:text>,</xsl:text>
-							</marc:subfield>
-							</xsl:if>
-					</xsl:if>
-						<!-- v3 role -->
-							<xsl:variable name="code">
-								<xsl:value-of select="$ead//ead:did[child::ead:unitid=$unitid]/ead:origination[@label='creator']/ead:persname/@role"/>
+								<xsl:value-of
+									select="substring-after(substring-after($ead//ead:did[child::ead:unitid=$unitid]/ead:origination[@label='creator']/ead:persname, ','),',')"
+								/>
 							</xsl:variable>
 
-							<marc:subfield code="e">
-								<xsl:value-of select="$relator//marc-relator-terms/relator[child::code=$code]/term"></xsl:value-of>
-								<xsl:text>.</xsl:text>
-							</marc:subfield>
-						
-				
-							<marc:subfield code="4">
-								<xsl:value-of select="$ead//ead:did[child::ead:unitid=$unitid]/ead:origination[@label='creator']/ead:persname/@role"/>
-							</marc:subfield>
-						
+							<xsl:if test="string-length($date) &gt; 3">
+
+								<marc:subfield code="d">
+
+									<xsl:value-of select="normalize-space($date)"/>
+									<xsl:text>,</xsl:text>
+								</marc:subfield>
+							</xsl:if>
+						</xsl:if>
+						<!-- v3 role -->
+						<xsl:variable name="code">
+							<xsl:value-of
+								select="$ead//ead:did[child::ead:unitid=$unitid]/ead:origination[@label='creator']/ead:persname/@role"
+							/>
+						</xsl:variable>
+
+						<marc:subfield code="e">
+							<xsl:value-of
+								select="$relator//marc-relator-terms/relator[child::code=$code]/term"/>
+							<xsl:text>.</xsl:text>
+						</marc:subfield>
+
+
+						<marc:subfield code="4">
+							<xsl:value-of
+								select="$ead//ead:did[child::ead:unitid=$unitid]/ead:origination[@label='creator']/ead:persname/@role"
+							/>
+						</marc:subfield>
+
 						<xsl:for-each select="mods:affiliation">
 							<marc:subfield code="u">
 								<xsl:value-of select="."/>
@@ -715,7 +728,7 @@
 								<xsl:otherwise>,</xsl:otherwise>
 							</xsl:choose>
 						</marc:subfield>
-						
+
 						<xsl:for-each select="mods:namePart[@type='termsOfAddress']">
 							<marc:subfield code="c">
 								<xsl:value-of select="."/>
@@ -728,7 +741,7 @@
 								<xsl:text>,</xsl:text>
 							</marc:subfield>
 						</xsl:for-each>
-						
+
 						<xsl:for-each select="mods:role/mods:roleTerm[@type='text']">
 							<marc:subfield code="e">
 								<xsl:value-of select="lower-case(.)"/>
@@ -750,7 +763,7 @@
 			</xsl:otherwise>
 		</xsl:choose>
 	</xsl:template>
-	
+
 	<!-- Title Info elements -->
 	<xsl:template match="mods:titleInfo[not(ancestor-or-self::mods:subject)][not(@type)][1]">
 
@@ -929,7 +942,7 @@
 
 	</xsl:template>
 
-
+    <xsl:template match="mods:identifier"/>
 
 	<xsl:template match="mods:accessCondition">
 		<xsl:call-template name="datafield">
@@ -954,19 +967,58 @@
 			</xsl:with-param>
 		</xsl:call-template>
 	</xsl:template>
-	<xsl:template match="mods:subject[local-name(*[1])='topic' or local-name(*[1])='occupation']">
+	
+	<!--work around to map genre to 655 -  Because we are putting mods:genre/marc 655 into mods:subject due to system constraints
+	(ASpace doesn't have a field that exports to mods:genre in the way we need it to.-->
+	
+	<xsl:template match="mods:subject[local-name(*[1])='genre']">
 		<xsl:call-template name="datafield">
-			<xsl:with-param name="tag">650</xsl:with-param>
-
+			<xsl:with-param name="tag">655</xsl:with-param>
+			
 			<xsl:with-param name="ind2">
 				<xsl:choose>
 					<xsl:when test="@authority='tucua' or @authority='lctgm' or @authority='gmgpc'"
 						>7</xsl:when>
 					<xsl:otherwise>0</xsl:otherwise>
 				</xsl:choose>
+				
+			</xsl:with-param>
+			<xsl:with-param name="subfields">
+				<marc:subfield code="a">
+					<xsl:value-of
+						select="concat(translate(substring(*[1] , 1, 1),
+						'abcdefghijklmnopqrstuvwxyz','ABCDEFGHIJKLMNOPQRSTUVWXYZ'),
+						substring(*[1],2,string-length(*[1])-1))"/>
+					<xsl:text>.</xsl:text>
+					
+				</marc:subfield>
+				<xsl:if test="@authority='tucua' or @authority='lctgm' or @authority='gmgpc'">
+					<marc:subfield code="2">
+						<xsl:value-of select="@authority"/>
+					</marc:subfield>
+				</xsl:if>
+			</xsl:with-param>
+			
+		</xsl:call-template>
+	</xsl:template>
+	
+	
+	
+	<xsl:template match="mods:subject[local-name(*[1])='topic' or local-name(*[1])='occupation']">
+		<xsl:call-template name="datafield">
+			<xsl:with-param name="tag">650</xsl:with-param>
+
+			<xsl:with-param name="ind2">
+				<xsl:choose>
+				
+					<xsl:when test="@authority='tucua' or @authority='lctgm' or @authority='gmgpc'">
+						<!-- commenting this out for future work; this scenario should never exist with our current ASpace exports
+						7--></xsl:when>
+			
+					<xsl:otherwise>0</xsl:otherwise>
+				</xsl:choose>
 
 			</xsl:with-param>
-
 
 			<xsl:with-param name="subfields">
 				<marc:subfield code="a">
@@ -996,7 +1048,7 @@
 							</marc:subfield>
 						</xsl:when>
 						<xsl:when test="local-name()='topic'">
-							<marc:subfield code="y">
+							<marc:subfield code="x">
 								<xsl:value-of select="."/>
 							</marc:subfield>
 						</xsl:when>
@@ -1015,14 +1067,10 @@
 	<xsl:template match="mods:subject">
 		<xsl:apply-templates/>
 	</xsl:template>
+	
+	
 
-
-
-	<xsl:template match="mods:subject/mods:topic">
-		<marc:subfield code="x">
-			<xsl:value-of select="."/>
-		</marc:subfield>
-	</xsl:template>
+	
 
 	<xsl:template name="burns-owner">
 		<xsl:call-template name="datafield">
@@ -1193,7 +1241,7 @@
 				<marc:subfield code="g">
 					<xsl:choose>
 						<xsl:when test="mods:subject">
-						<xsl:value-of select="translate(mods:subject/mods:topic,'.','')"/>
+							<xsl:value-of select="translate(mods:subject/mods:genre,'.','')"/>
 						</xsl:when>
 						<!--temp Anansi data fix-->
 						<xsl:otherwise>
@@ -1205,7 +1253,7 @@
 				<marc:subfield code="2">
 					<xsl:choose>
 						<xsl:when test="mods:subject">
-					<xsl:value-of select="mods:subject/@authority"/>
+							<xsl:value-of select="mods:subject/@authority"/>
 						</xsl:when>
 						<!--temp Anansi data fix-->
 						<xsl:otherwise>
