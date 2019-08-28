@@ -1167,6 +1167,7 @@
 	</xsl:template>
 
 	<xsl:template name="marc856-FindingAid">
+		<xsl:if test="$ead//ead:eadid/@url">
 		<xsl:call-template name="datafield">
 			<xsl:with-param name="tag">856</xsl:with-param>
 			<xsl:with-param name="ind1">4</xsl:with-param>
@@ -1181,6 +1182,7 @@
 				</marc:subfield>
 			</xsl:with-param>
 		</xsl:call-template>
+		</xsl:if>
 	</xsl:template>
 
 
