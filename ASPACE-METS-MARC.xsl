@@ -1269,6 +1269,16 @@
 						<xsl:when test="contains(mods:note[@type='dimensions'], 'file')">
 							<xsl:text>file</xsl:text>
 						</xsl:when>
+						<xsl:otherwise>
+							<xsl:variable name="unitid">
+								<xsl:value-of
+									select="substring-before(ancestor::mets:mets/mets:fileSec/mets:fileGrp[1]/mets:file[1]/mets:FLocat/@xlink:href, '_000')"
+								/>
+							</xsl:variable>
+							<xsl:value-of select="$ead//ead:did[child::ead:unitid=$unitid]/parent::node()/@level">
+								
+							</xsl:value-of>
+						</xsl:otherwise>
 					</xsl:choose>
 				</marc:subfield>
 
