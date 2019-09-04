@@ -206,6 +206,10 @@
 						<xsl:text>mau</xsl:text>
 					</xsl:otherwise>
 				</xsl:choose>
+				<!-- 18-21 - MU -->
+				<xsl:if test="$typeOf008='MU'">
+					<xsl:text>||||</xsl:text>
+				</xsl:if>
 				<!-- 18-22 - MM -->
 				<xsl:if test="$typeOf008='MM'">
 					<xsl:text>#####</xsl:text>
@@ -296,13 +300,24 @@
 					<xsl:when test="$typeOf008='VM'">
 						<xsl:text>#####</xsl:text>
 					</xsl:when>
+					<xsl:when test="$typeOf008='MU'">
+						<xsl:text>||||</xsl:text>
+					</xsl:when>
 					<xsl:otherwise>
 
 						<xsl:text>####</xsl:text>
 					</xsl:otherwise>
 				</xsl:choose>
 				<!-- 28 -->
-				<xsl:text>#</xsl:text>
+				<xsl:choose>
+					<xsl:when test="$typeOf008='MU'">
+						<xsl:text>|</xsl:text>
+					</xsl:when>
+					<xsl:otherwise>
+						<xsl:text>#</xsl:text>
+					</xsl:otherwise>
+				</xsl:choose>
+
 				<!-- 29 -->
 				<xsl:choose>
 					<xsl:when test="$typeOf008='BK' or $typeOf008='SE'">
@@ -316,6 +331,10 @@
 
 						<xsl:text>0</xsl:text>
 					</xsl:when>
+					<xsl:when test="$typeOf008='MU'">
+						
+						<xsl:text>|</xsl:text>
+					</xsl:when>
 				</xsl:choose>
 				<!-- 30-31 -->
 				<xsl:choose>
@@ -326,6 +345,9 @@
 							<xsl:otherwise>0</xsl:otherwise>
 						</xsl:choose>
 						<xsl:text>0</xsl:text>
+					</xsl:when>
+					<xsl:when test="$typeOf008='MU'">
+						<xsl:text>||</xsl:text>
 					</xsl:when>
 					<xsl:otherwise>
 						<xsl:text>##</xsl:text>
@@ -381,6 +403,9 @@
 					</xsl:when>
 					<xsl:when test="$typeOf008='VM'">
 						<xsl:text>n</xsl:text>
+					</xsl:when>
+					<xsl:when test="$typeOf008='MU'">
+						<xsl:text>#</xsl:text>
 					</xsl:when>
 					<xsl:otherwise>|</xsl:otherwise>
 				</xsl:choose>
@@ -439,8 +464,8 @@
 			<!-- assumption all ASpace stuff is manuscript; made because ASpace METS export has no manuscript attribute-->
 			<xsl:when test="text()='cartographic' and @manuscript='yes'">f</xsl:when>
 			<xsl:when test="text()='cartographic'">e</xsl:when>
-			<xsl:when test="text()='notated music' and @manuscript='yes'">d</xsl:when>
-			<xsl:when test="text()='notated music'">c</xsl:when>
+
+			<xsl:when test="text()='notated music'">d</xsl:when>
 			<!-- v3 musical/non -->
 			<xsl:when test="text()='sound recording-nonmusical'">i</xsl:when>
 			<xsl:when test="text()='sound recording'">j</xsl:when>
@@ -471,6 +496,9 @@
 			</xsl:when>
 			<xsl:when test="mods:typeOfResource='mixed material'">
 				<marc:controlfield tag="006">m####|o##m########</marc:controlfield>
+			</xsl:when>
+			<xsl:when test="mods:typeOfResource='notated music'">
+				<marc:controlfield tag="006">m####|o##c########</marc:controlfield>
 			</xsl:when>
 		</xsl:choose>
 
@@ -891,6 +919,22 @@
 					</xsl:with-param>
 				</xsl:call-template>
 			</xsl:when>
+				<xsl:when test="text()='notated music'">
+					<xsl:call-template name="datafield">
+						<xsl:with-param name="tag">336</xsl:with-param>
+						<xsl:with-param name="subfields">
+							<marc:subfield code="a">
+								<xsl:value-of select="."/>
+							</marc:subfield>
+							<marc:subfield code="b">
+								<xsl:text>ntm</xsl:text>
+							</marc:subfield>
+							<marc:subfield code="2">
+								<xsl:text>rdacontent</xsl:text>
+							</marc:subfield>
+						</xsl:with-param>
+					</xsl:call-template>
+			</xsl:when>
 
 
 
@@ -1123,6 +1167,7 @@
 	</xsl:template>
 
 	<xsl:template name="marc856-FindingAid">
+		<xsl:if test="$ead//ead:eadid/@url">
 		<xsl:call-template name="datafield">
 			<xsl:with-param name="tag">856</xsl:with-param>
 			<xsl:with-param name="ind1">4</xsl:with-param>
@@ -1137,6 +1182,7 @@
 				</marc:subfield>
 			</xsl:with-param>
 		</xsl:call-template>
+		</xsl:if>
 	</xsl:template>
 
 
@@ -1223,6 +1269,16 @@
 						<xsl:when test="contains(mods:note[@type='dimensions'], 'file')">
 							<xsl:text>file</xsl:text>
 						</xsl:when>
+						<xsl:otherwise>
+							<xsl:variable name="unitid">
+								<xsl:value-of
+									select="substring-before(ancestor::mets:mets/mets:fileSec/mets:fileGrp[1]/mets:file[1]/mets:FLocat/@xlink:href, '_000')"
+								/>
+							</xsl:variable>
+							<xsl:value-of select="$ead//ead:did[child::ead:unitid=$unitid]/parent::node()/@level">
+								
+							</xsl:value-of>
+						</xsl:otherwise>
 					</xsl:choose>
 				</marc:subfield>
 
