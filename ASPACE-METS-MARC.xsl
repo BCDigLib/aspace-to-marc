@@ -44,7 +44,7 @@
 
 	<xsl:variable name="ead" select="document('ead.xml')"/>
 	<xsl:variable name="relator" select="document('marc-relator-terms.xml')"/>
-
+	
 	<xsl:output method="xml" indent="yes" encoding="UTF-8" omit-xml-declaration="yes"/>
 
 	<xsl:template match="/daos">
@@ -870,7 +870,9 @@
 
 				<marc:subfield code="a">
 					<xsl:text>1 online resource (</xsl:text>
-
+					<xsl:choose>
+						<xsl:when test="contains(ancestor::mets:mets/mets:fileSec/mets:fileGrp[1]/mets:file[position()=last], 'target')">
+	
 					<xsl:value-of
 						select="count(ancestor::mets:mets/mets:fileSec/mets:fileGrp[1]/mets:file) - 1"/>
 					<xsl:text> image</xsl:text>
@@ -879,6 +881,18 @@
 						<xsl:text>s</xsl:text>
 						<xsl:text>)</xsl:text>
 					</xsl:if>
+						</xsl:when>
+						<xsl:otherwise>
+							<xsl:value-of
+								select="count(ancestor::mets:mets/mets:fileSec/mets:fileGrp[1]/mets:file)"/>
+							<xsl:text> image</xsl:text>
+							<xsl:if
+								test="count(ancestor::mets:mets/mets:fileSec/mets:fileGrp[1]/mets:file) &gt; 1">
+								<xsl:text>s</xsl:text>
+								<xsl:text>)</xsl:text>
+							</xsl:if>
+						</xsl:otherwise>
+					</xsl:choose>
 				</marc:subfield>
 			</xsl:with-param>
 		</xsl:call-template>
@@ -1187,20 +1201,32 @@
 
 
 	<xsl:template name="marc856-0bject">
+		<xsl:param name="count">
+			<xsl:if test="contains(ancestor::mets:mets/mets:fileSec/mets:fileGrp[1]/mets:file[position()=last], 'target')">		
+				<xsl:value-of
+					select="count(ancestor::mets:mets/mets:fileSec/mets:fileGrp[1]/mets:file) - 1"/>
+			</xsl:if>
+			<xsl:if test="not(contains(ancestor::mets:mets/mets:fileSec/mets:fileGrp[1]/mets:file[position()=last], 'target'))">		
+				<xsl:value-of
+					select="count(ancestor::mets:mets/mets:fileSec/mets:fileGrp[1]/mets:file)"/>
+			</xsl:if>
+		</xsl:param>
 		<xsl:call-template name="datafield">
 			<xsl:with-param name="tag">856</xsl:with-param>
 			<xsl:with-param name="ind1">4</xsl:with-param>
 			<xsl:with-param name="ind2">0</xsl:with-param>
+			
 			<xsl:with-param name="subfields">
 				<marc:subfield code="3">
-					<xsl:value-of
-						select="count(ancestor::mets:mets/mets:fileSec/mets:fileGrp[1]/mets:file) - 1"/>
-					<xsl:text> image</xsl:text>
-					<xsl:if
-						test="count(ancestor::mets:mets/mets:fileSec/mets:fileGrp[1]/mets:file) &gt; 2">
-						<xsl:text>s</xsl:text>
-					</xsl:if>
-
+					<xsl:value-of select="$count"/>
+					<xsl:choose>
+						<xsl:when test="$count &gt; 1">
+							<xsl:text> images</xsl:text>
+						</xsl:when>
+						<xsl:otherwise>
+							<xsl:text> image</xsl:text>
+						</xsl:otherwise>
+					</xsl:choose>				
 				</marc:subfield>
 
 				<marc:subfield code="u">
@@ -1220,14 +1246,15 @@
 				</marc:subfield>
 				<marc:subfield code="z">
 					<xsl:text>View online resource (</xsl:text>
-					<xsl:value-of
-						select="count(ancestor::mets:mets/mets:fileSec/mets:fileGrp[1]/mets:file) - 1"/>
-					<xsl:text> image</xsl:text>
-					<xsl:if
-						test="count(ancestor::mets:mets/mets:fileSec/mets:fileGrp[1]/mets:file) &gt; 2">
-						<xsl:text>s</xsl:text>
-					</xsl:if>
-					<xsl:text>)</xsl:text>
+					<xsl:value-of select="$count"/>
+					<xsl:choose>
+						<xsl:when test="$count &gt; 1">
+							<xsl:text> images)</xsl:text>
+						</xsl:when>
+						<xsl:otherwise>
+							<xsl:text> image)</xsl:text>
+						</xsl:otherwise>
+					</xsl:choose>
 				</marc:subfield>
 
 			</xsl:with-param>
