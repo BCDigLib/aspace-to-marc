@@ -151,7 +151,7 @@
 						<xsl:text>      </xsl:text>
 					</xsl:otherwise>
 				</xsl:choose>
-				<!-- 06 -->
+				<!-- 06 - 14 -->
 				<xsl:variable name="unitid">
 					<xsl:value-of
 						select="substring-before(ancestor::mets:mets/mets:fileSec/mets:fileGrp[1]/mets:file[1]/mets:FLocat/@xlink:href, '_000')"
@@ -159,35 +159,28 @@
 				</xsl:variable>
 				<xsl:choose>
 					<xsl:when
-						test="substring($ead//ead:did[child::ead:unitid=$unitid]/ead:unitdate/@normal,1,4)=substring($ead//ead:did[child::ead:unitid=$unitid]/ead:unitdate/@normal,6,9)">
+						test="substring-before($ead//ead:did[child::ead:unitid=$unitid]/ead:unitdate/@normal, /)=substring-after($ead//ead:did[child::ead:unitid=$unitid]/ead:unitdate/@normal , /)">
 						<xsl:text>s</xsl:text>
+						<xsl:value-of
+							select="substring($ead//ead:did[child::ead:unitid=$unitid]/ead:unitdate/@normal,1,4)"/>
+						<xsl:text>||||</xsl:text>
 					</xsl:when>
 					<xsl:otherwise>
 						<xsl:text>m</xsl:text>
-					</xsl:otherwise>
-				</xsl:choose>
-				<!-- 07-14          -->
-				<!-- 07-10 -->
-
-
-				<xsl:value-of
-					select="substring($ead//ead:did[child::ead:unitid=$unitid]/ead:unitdate/@normal,1,4)"/>
-
-				<!-- 11-14 -->
-				<xsl:choose>
-					<xsl:when
-						test="substring($ead//ead:did[child::ead:unitid=$unitid]/ead:unitdate/@normal,1,4)!=substring($ead//ead:did[child::ead:unitid=$unitid]/ead:unitdate/@normal,6,9)">
-
 						<xsl:value-of
-							select="substring($ead//ead:did[child::ead:unitid=$unitid]/ead:unitdate/@normal,6,9)"
+							select="substring($ead//ead:did[child::ead:unitid=$unitid]/ead:unitdate/@normal,1,4)"/>
+						
+						<xsl:value-of
+							select="substring(substring-after($ead//ead:did[child::ead:unitid=$unitid]/ead:unitdate/@normal, /),1,4)"
 						/>
-					</xsl:when>
-
-
-					<xsl:otherwise>
-						<xsl:text>####</xsl:text>
 					</xsl:otherwise>
+					
+
 				</xsl:choose>
+
+
+
+
 				<!-- 15-17 -->
 				<xsl:choose>
 					<!-- v3 place -->
