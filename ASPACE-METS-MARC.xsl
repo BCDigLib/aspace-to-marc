@@ -463,7 +463,7 @@
 			<xsl:when test="text()='sound recording-nonmusical'">i</xsl:when>
 			<xsl:when test="text()='sound recording'">j</xsl:when>
 			<xsl:when test="text()='sound recording-musical'">j</xsl:when>
-			<xsl:when test="text()='still_image'">k</xsl:when>
+			<xsl:when test="text()='still image'">k</xsl:when>
 			<xsl:when test="text()='moving image'">g</xsl:when>
 			<xsl:when test="text()='three dimensional object'">r</xsl:when>
 			<xsl:when test="text()='software, multimedia'">m</xsl:when>
@@ -484,7 +484,7 @@
 			<xsl:when test="mods:typeOfResource='text'">
 				<marc:controlfield tag="006">m####|o##d########</marc:controlfield>
 			</xsl:when>
-			<xsl:when test="mods:typeOfResource='still_image'">
+			<xsl:when test="mods:typeOfResource='still image'">
 				<marc:controlfield tag="006">m####|o##c########</marc:controlfield>
 			</xsl:when>
 			<xsl:when test="mods:typeOfResource='mixed material'">
@@ -525,8 +525,8 @@
 			<!-- v3 musical/non -->
 			<xsl:when test="text()='sound recording-nonmusical'">MU</xsl:when>
 			<xsl:when test="text()='sound recording-musical'">MU</xsl:when>
-			<xsl:when test="text()='still_image'">VM</xsl:when>
-			<xsl:when test="text()='still_image' and @manuscript='yes'">VM</xsl:when>
+			<xsl:when test="text()='still image'">VM</xsl:when>
+			<xsl:when test="text()='still image' and @manuscript='yes'">VM</xsl:when>
 			<xsl:when test="text()='moving image'">VM</xsl:when>
 			<xsl:when test="text()='three dimensional object'">VM</xsl:when>
 			<xsl:when test="text()='software, multimedia'">CF</xsl:when>
@@ -869,6 +869,7 @@
 					<xsl:value-of
 						select="count(ancestor::mets:mets/mets:fileSec/mets:fileGrp[1]/mets:file) - 1"/>
 					<xsl:text> image</xsl:text>
+					<xsl:text>)</xsl:text>
 					<xsl:if
 						test="count(ancestor::mets:mets/mets:fileSec/mets:fileGrp[1]/mets:file) &gt; 2">
 						<xsl:text>s</xsl:text>
@@ -879,6 +880,7 @@
 							<xsl:value-of
 								select="count(ancestor::mets:mets/mets:fileSec/mets:fileGrp[1]/mets:file)"/>
 							<xsl:text> image</xsl:text>
+							<xsl:text>)</xsl:text>
 							<xsl:if
 								test="count(ancestor::mets:mets/mets:fileSec/mets:fileGrp[1]/mets:file) &gt; 1">
 								<xsl:text>s</xsl:text>
@@ -896,7 +898,7 @@
 		<xsl:call-template name="marc300"/>
 		<xsl:choose>
 
-			<xsl:when test="text()='still_image'">
+			<xsl:when test="text()='still image'">
 				<xsl:call-template name="datafield">
 					<xsl:with-param name="tag">336</xsl:with-param>
 					<xsl:with-param name="subfields">
