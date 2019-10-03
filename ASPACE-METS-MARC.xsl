@@ -46,9 +46,17 @@
 	<xsl:variable name="relator" select="document('marc-relator-terms.xml')"/>
 	
 	<xsl:output method="xml" indent="yes" encoding="UTF-8" omit-xml-declaration="yes"/>
-
+	<xsl:variable name="standalone">
+		<xsl:if test="$ead//ead:eadid/@url">
+			<xsl:text>FALSE</xsl:text>
+		</xsl:if>	
+		<xsl:if test="not($ead//ead:eadid/@url)">
+			<xsl:text>TRUE</xsl:text>
+		</xsl:if>
+	</xsl:variable>
 	<xsl:template match="/daos">
 		<marc:collection>
+			
 			<xsl:apply-templates/>
 		</marc:collection>
 	</xsl:template>
@@ -111,9 +119,16 @@
 				<!-- 06 -->
 				<xsl:apply-templates mode="leader" select="mods:typeOfResource[1]"/>
 				<!-- 07 -->
+				<xsl:choose>
+					<xsl:when test="$standalone='TRUE'">
+						<xsl:text>m</xsl:text>						
+					</xsl:when>
+					<xsl:otherwise>
+						<!--archival subunit-->
+						<xsl:text>d</xsl:text>
+					</xsl:otherwise>
+				</xsl:choose>
 
-				<xsl:text>d</xsl:text>
-				<!--archival subunit-->
 				<!-- 08 -->
 				<!--Default will be archival control for BC custom -->
 				<xsl:text>a</xsl:text>
@@ -159,26 +174,43 @@
 				</xsl:variable>
 				<xsl:choose>
 					<xsl:when
-						test="substring-before($ead//ead:did[child::ead:unitid=$unitid]/ead:unitdate/@normal, /)=substring-after($ead//ead:did[child::ead:unitid=$unitid]/ead:unitdate/@normal , /)">
+						test="substring-before($ead//ead:did[child::ead:unitid=$unitid]/ead:unitdate/@normal, '/')=substring-after($ead//ead:did[child::ead:unitid=$unitid]/ead:unitdate/@normal , '/')">
 						<xsl:text>s</xsl:text>
 						<xsl:value-of
 							select="substring($ead//ead:did[child::ead:unitid=$unitid]/ead:unitdate/@normal,1,4)"/>
 						<xsl:text>||||</xsl:text>
 					</xsl:when>
 					<xsl:otherwise>
-						<xsl:text>m</xsl:text>
+						<!--From Kathryn, for an item published somewhere in a probable range of years, the 008 06 
+							code would be q (Questionable: Exact date for a single date item is not known but a range of 
+							years for the date can be specified (e.g., between 1824 and 1846).  m is more for multiple 
+							items published over a span of years, or for a single item executed over a range of years, 
+							like a painting.
+							
+							If you can get close enough to guess at a single year, you would use s, even though it's a guess.-->
+						
+						<xsl:choose>
+							<xsl:when test="$ead//ead:did[child::ead:unitid=$unitid]/ead:unitdate/@certainty='questionable'">
+								<xsl:text>q</xsl:text>
+							</xsl:when>
+							<xsl:otherwise>
+								<xsl:text>m</xsl:text>
+							</xsl:otherwise>
+						</xsl:choose>
+			
 						<xsl:value-of
 							select="substring($ead//ead:did[child::ead:unitid=$unitid]/ead:unitdate/@normal,1,4)"/>
 						
 						<xsl:value-of
-							select="substring(substring-after($ead//ead:did[child::ead:unitid=$unitid]/ead:unitdate/@normal, /),1,4)"
+							select="substring(substring-after($ead//ead:did[child::ead:unitid=$unitid]/ead:unitdate/@normal, '/'),1,4)"
 						/>
 					</xsl:otherwise>
 					
-
+					
 				</xsl:choose>
-
-
+				
+				
+				
 
 
 				<!-- 15-17 -->
@@ -439,9 +471,14 @@
 				</xsl:call-template>
 			</xsl:if>
 			<xsl:call-template name="burns-owner"/>
+			<xsl:if test="$standalone='FALSE'">
 			<xsl:call-template name="marc773"/>
+			</xsl:if>
 			<xsl:call-template name="marc856-FindingAid"/>
 			<xsl:call-template name="marc856-0bject"/>
+			<xsl:if test="$standalone = 'TRUE'">
+				<xsl:call-template name="standalone"/>
+			</xsl:if>
 			<xsl:call-template name="marc940"/>
 			<xsl:call-template name="marc991"/>
 
@@ -810,13 +847,25 @@
 		</xsl:call-template>
 	</xsl:template>
 	<xsl:template name="titleInfo">
-		<xsl:for-each select="mods:title">
-			<marc:subfield code="a">
-				<xsl:value-of select="../mods:nonSort"/>
-				<xsl:value-of select="normalize-space(.)"/>
-				<xsl:text>.</xsl:text>
-			</marc:subfield>
-		</xsl:for-each>
+		<xsl:choose>
+			<xsl:when test="$standalone='TRUE' and mods:title !=$ead//ead:archdesc[@level='collection']/ead:did/ead:unittitle">
+				<marc:subfield code="a">
+					
+					<xsl:value-of select="normalize-space($ead//ead:archdesc[@level='collection']/ead:did/ead:unittitle)"/>
+					<xsl:text>.</xsl:text>
+				</marc:subfield>
+			</xsl:when>
+			<xsl:otherwise>
+				<xsl:for-each select="mods:title">
+					<marc:subfield code="a">
+						<xsl:value-of select="../mods:nonSort"/>
+						<xsl:value-of select="normalize-space(.)"/>
+						<xsl:text>.</xsl:text>
+					</marc:subfield>
+				</xsl:for-each>
+			</xsl:otherwise>
+		</xsl:choose>
+
 		<!-- 1/04 fix -->
 		<xsl:for-each select="mods:subTitle">
 			<marc:subfield code="b">
@@ -848,7 +897,11 @@
 			<xsl:with-param name="subfields">
 				<marc:subfield code="c">
 					<xsl:value-of select="$ead//ead:did[child::ead:unitid=$unitid]/ead:unitdate"/>
-					<xsl:text>.</xsl:text>
+					<xsl:if test="not(substring($ead//ead:did[child::ead:unitid=$unitid]/ead:unitdate, string-length($ead//ead:did[child::ead:unitid=$unitid]/ead:unitdate),1)='?')">
+						<xsl:text>.</xsl:text>
+					</xsl:if>
+					
+				
 				</marc:subfield>
 			</xsl:with-param>
 		</xsl:call-template>
@@ -869,25 +922,27 @@
 					<xsl:value-of
 						select="count(ancestor::mets:mets/mets:fileSec/mets:fileGrp[1]/mets:file) - 1"/>
 					<xsl:text> image</xsl:text>
-					<xsl:text>)</xsl:text>
+
 					<xsl:if
 						test="count(ancestor::mets:mets/mets:fileSec/mets:fileGrp[1]/mets:file) &gt; 2">
 						<xsl:text>s</xsl:text>
-						<xsl:text>)</xsl:text>
+
 					</xsl:if>
 						</xsl:when>
 						<xsl:otherwise>
 							<xsl:value-of
 								select="count(ancestor::mets:mets/mets:fileSec/mets:fileGrp[1]/mets:file)"/>
 							<xsl:text> image</xsl:text>
-							<xsl:text>)</xsl:text>
+
 							<xsl:if
 								test="count(ancestor::mets:mets/mets:fileSec/mets:fileGrp[1]/mets:file) &gt; 1">
 								<xsl:text>s</xsl:text>
-								<xsl:text>)</xsl:text>
+
 							</xsl:if>
 						</xsl:otherwise>
+
 					</xsl:choose>
+					<xsl:text>)</xsl:text>
 				</marc:subfield>
 			</xsl:with-param>
 		</xsl:call-template>
@@ -1273,13 +1328,23 @@
 
 
 	<xsl:template name="marc991">
+		<xsl:param name="count">
+			<xsl:if test="contains(ancestor::mets:mets/mets:fileSec/mets:fileGrp[1]/mets:file[position()=last], 'target')">		
+				<xsl:value-of
+					select="count(ancestor::mets:mets/mets:fileSec/mets:fileGrp[1]/mets:file) - 1"/>
+			</xsl:if>
+			<xsl:if test="not(contains(ancestor::mets:mets/mets:fileSec/mets:fileGrp[1]/mets:file[position()=last], 'target'))">		
+				<xsl:value-of
+					select="count(ancestor::mets:mets/mets:fileSec/mets:fileGrp[1]/mets:file)"/>
+			</xsl:if>
+		</xsl:param>
 		<xsl:call-template name="datafield">
 			<xsl:with-param name="tag">991</xsl:with-param>
 			<xsl:with-param name="subfields">
 				<marc:subfield code="a">DAO</marc:subfield>
 				<marc:subfield code="c">
 					<xsl:value-of
-						select="count(ancestor::mets:mets/mets:fileSec/mets:fileGrp[1]/mets:file)-1"
+						select="$count"
 					/>
 				</marc:subfield>
 				<marc:subfield code="l">
@@ -1342,6 +1407,27 @@
 			</xsl:with-param>
 		</xsl:call-template>
 
+	</xsl:template>
+	
+	<xsl:template name="standalone">
+		<xsl:call-template name="datafield">
+			<xsl:with-param name="tag">940</xsl:with-param>
+			<xsl:with-param name="ind1">1</xsl:with-param>
+			<xsl:with-param name="ind2"> </xsl:with-param>
+			<xsl:with-param name="subfields">
+				<marc:subfield code="a">Standalone</marc:subfield>
+			</xsl:with-param>
+		</xsl:call-template>
+		<xsl:call-template name="datafield">
+			<xsl:with-param name="tag">776</xsl:with-param>
+			<xsl:with-param name="ind1">1</xsl:with-param>
+			<xsl:with-param name="ind2"> </xsl:with-param>
+			<xsl:with-param name="subfields">
+				<marc:subfield code="c">Original</marc:subfield>
+				<marc:subfield code="w">(Alma)</marc:subfield>
+			</xsl:with-param>
+		</xsl:call-template>
+		
 	</xsl:template>
 
 
